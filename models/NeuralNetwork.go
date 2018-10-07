@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"errors"
 	"fmt"
+	"math"
 )
 
 type NeuralNetwork struct {
@@ -85,24 +86,42 @@ func (nn *NeuralNetwork) SetInput(inputs []float64) error{
 }
 
 func (nn *NeuralNetwork) Propagate() {
-
-	for numLayer := 1; numLayer < nn.NbrHiddenLayers+1; numLayer++ {
-		for numNeuron := 0; numNeuron < nn.NbrNeuronsPerLayer; numNeuron++ {
-			sum := 0.0
+	for numLayer := 1; numLayer < len(nn.Neurons); numLayer++ {
+		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
+			sum := nn.Neurons[numLayer][numNeuron].Biais
 			for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[numLayer - 1]); numWeightNeuron++ {
 				sum += nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] * nn.Neurons[numLayer-1][numWeightNeuron].Value
 			}
 			nn.Neurons[numLayer][numNeuron].Sigmoid(sum)
 		}
 	}
+}
 
-	for numNeuron := 0; numNeuron < nn.NbrOutput; numNeuron++ {
-		for numWeightNeuron := 0; numWeightNeuron < nn.NbrOutput; numWeightNeuron++ {
-			sum := 0.0
-			for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[nn.NbrHiddenLayers - 1]); numWeightNeuron++ {
-				sum += nn.Neurons[nn.NbrHiddenLayers+1][numNeuron].Weights[numWeightNeuron] * nn.Neurons[nn.NbrHiddenLayers][numWeightNeuron].Value
-			}
-			nn.Neurons[nn.NbrHiddenLayers+1][numNeuron].Sigmoid(sum)
+func (nn *NeuralNetwork) ComputeError(output []float64) {
+	for numNeuronOutput := 0; numNeuronOutput < nn.NbrOutput; numNeuronOutput++ {
+		nn.Neurons[nn.NbrHiddenLayers + 1][numNeuronOutput].Error = math.Pow(nn.Neurons[nn.NbrHiddenLayers + 1][numNeuronOutput].Value - output[numNeuronOutput], 2 )
+	}
+	/*
+	for numLayer := nn.NbrHiddenLayers; numLayer >= 0; numLayer++ {
+		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
+			nn.Neurons[numLayer][numNeuron].Error = math.Pow(nn.Neurons[numLayer][numNeuron].Value - output[numNeuron], 2 )
 		}
+
+	}*/
+}
+
+
+func (nn *NeuralNetwork) Learn() {
+	for numNeuronOutput := 0; numNeuronOutput < nn.NbrOutput; numNeuronOutput++ {
+	}
+}
+
+
+func (nn *NeuralNetwork) Train(dataSet [][][]float64) {
+	for _, data := range dataSet {
+		nn.SetInput(data[0])
+		nn.Propagate()
+		nn.ComputeError(data[1])
+		nn.Learn()
 	}
 }
