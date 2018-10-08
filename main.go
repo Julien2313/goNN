@@ -43,26 +43,26 @@ func main() {
 */package main
 
 import (
-	"fmt"
-
 	"github.com/goNN/models"
 )
 
 func main() {
 
-	trainSet := [][][]float64{{{1}, {2}}, {{0}, {0}}, {{4}, {8}}, {{5}, {10}}}
+	//trainSet := [][][]float64{{{1}, {2}}, {{4}, {8}}, {{5}, {10}}}
 	var nn models.NeuralNetwork
 
-	nn.Init(1, 1, 0, 0)
-	nn.SetInput([]float64{5})
-	nn.Propagate()
-	fmt.Println(nn.Neurons[2][0].Value)
+	nn.Init(2, 8, 1, 72)
+	//nn.SetInput([]float64{2})
+	//nn.Propagate()
+	//fmt.Println(nn.Neurons[1][0].Value)
+	////
+	//for x := 0; x < 500; x++ {
+	//	nn.Train(trainSet)
+	//}
+	//nn.SetInput([]float64{5})
+	//nn.Propagate()
+	//fmt.Println(nn.Neurons[1][0].Value)
+	nn.Draw()
 
-	for x := 0; x < 500; x++ {
-		nn.Train(trainSet)
-	}
-	nn.SetInput([]float64{5})
-	nn.Propagate()
-	fmt.Println(nn.Neurons[2][0].Value)
 
 }
