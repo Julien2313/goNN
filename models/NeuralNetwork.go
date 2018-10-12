@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 
 	"github.com/fogleman/gg"
@@ -78,7 +79,7 @@ func (nn *NeuralNetwork) Print() {
 	}
 }
 
-func (nn *NeuralNetwork) Draw() {
+func (nn *NeuralNetwork) Draw(epoch int) {
 
 	const W = 1024 * 2
 	const H = 1024 * 2
@@ -86,37 +87,62 @@ func (nn *NeuralNetwork) Draw() {
 	dc.SetRGBA(0, 0, 0, 0)
 	dc.Clear()
 
-	offSetX := W /(len(nn.Neurons) + 1)
+	offSetX := W / (len(nn.Neurons) + 1)
+	maxNumOfneurons := 0
 	for numLayer := 0; numLayer < len(nn.Neurons); numLayer++ {
-		x := offSetX*(numLayer + 1)
-		offSetY := H /(len(nn.Neurons[numLayer]) + 1)
+		if len(nn.Neurons[numLayer]) > maxNumOfneurons {
+			maxNumOfneurons = len(nn.Neurons[numLayer])
+		}
+	}
+
+	for numLayer := 1; numLayer < len(nn.Neurons); numLayer++ {
+		x1 := float64(offSetX * (numLayer + 1))
+		x2 := float64(offSetX * (numLayer))
+		offSetY := H / (len(nn.Neurons[numLayer]) + 1)
+		offSetYM1 := H / (len(nn.Neurons[numLayer-1]) + 1)
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
-			y := offSetY*(numNeuron + 1)
+			y1 := float64(offSetY * (numNeuron + 1))
+			for numWeight := 0; numWeight < len(nn.Neurons[numLayer][numNeuron].Weights); numWeight++ {
+				y2 := float64(offSetYM1 * (numWeight + 1))
+				//x2 := rand.Float64() * W
+				//y2 := rand.Float64() * H
+				var r float64
+				var b float64
+				var w float64
+				if nn.Neurons[numLayer][numNeuron].Weights[numWeight] > 0.0 {
+					r = 1.0 // nn.Neurons[numLayer][numNeuron].Weights[numWeight]
+					b = 0.0
+				} else {
+					r = -1.0 // nn.Neurons[numLayer][numNeuron].Weights[numWeight]
+					b = rand.Float64()
+				}
+				w = math.Abs(nn.Neurons[numLayer][numNeuron].Weights[numWeight]) / 5.0
+				g := 0.0
+				a := 1.0
+				dc.SetRGBA(r, g, b, a)
+				dc.SetLineWidth(w)
+				dc.DrawLine(x1, y1, x2, y2)
+				dc.Stroke()
+			}
+		}
+	}
+
+	for numLayer := 0; numLayer < len(nn.Neurons); numLayer++ {
+		x := offSetX * (numLayer + 1)
+		offSetY := H / (len(nn.Neurons[numLayer]) + 1)
+		size := float64(len(nn.Neurons[numLayer])) / float64(maxNumOfneurons) / 3.0
+		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
+			y := offSetY * (numNeuron + 1)
 			dc.SetRGBA(0, 0, 0, 1)
-			dc.DrawCircle(float64(x), float64(y), float64(offSetX/10))
+			dc.DrawCircle(float64(x), float64(y), size*float64(H/len(nn.Neurons[numLayer])))
 			dc.Fill()
 			dc.SetRGBA(1, 1, 1, 1)
-			dc.DrawCircle(float64(x), float64(y), float64(offSetX/11))
+			dc.DrawCircle(float64(x), float64(y), size*float64(H/len(nn.Neurons[numLayer]))*0.9)
 			dc.Fill()
 		}
 	}
-	/*
-		for i := 0; i < 10000; i++ {
-			x1 := rand.Float64() * W
-			y1 := rand.Float64() * H
-			x2 := rand.Float64() * W
-			y2 := rand.Float64() * H
-			r := rand.Float64()
-			g := rand.Float64()
-			b := rand.Float64()
-			a := rand.Float64()*0.5 + 0.5
-			w := rand.Float64()*4 + 1
-			dc.SetRGBA(r, g, b, a)
-			dc.SetLineWidth(w)
-			dc.DrawLine(x1, y1, x2, y2)
-			dc.Stroke()
-		}*/
-	dc.SavePNG("out.png")
+
+	dc.SavePNG(fmt.Sprintf("%04d", epoch) + "out.png")
 }
 
 func (nn *NeuralNetwork) SetInput(inputs []float64) error {
@@ -136,7 +162,7 @@ func (nn *NeuralNetwork) Propagate() {
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
 			sum := nn.Neurons[numLayer][numNeuron].Biais
 			for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[numLayer-1]); numWeightNeuron++ {
-				fmt.Println("  ", nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron]*nn.Neurons[numLayer-1][numWeightNeuron].Value)
+				//fmt.Println("  ", nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron]*nn.Neurons[numLayer-1][numWeightNeuron].Value)
 				sum += nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] * nn.Neurons[numLayer-1][numWeightNeuron].Value
 			}
 			nn.Neurons[numLayer][numNeuron].Value = helper.Sigmoid(sum)
@@ -176,6 +202,12 @@ func (nn *NeuralNetwork) BackProp(output []float64) {
 	for numLayer := 1; numLayer < nn.NbrHiddenLayers+2; numLayer++ {
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
 			for numWeights := 0; numWeights < len(nn.Neurons[numLayer-1]); numWeights++ {
+				if nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] > 20 {
+					nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] = 20
+				}
+				if nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] < -20 {
+					nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] = -20
+				}
 				nn.Neurons[numLayer][numNeuron].Weights[numWeights] = nn.Neurons[numLayer][numNeuron].NewWeights[numWeights]
 			}
 		}

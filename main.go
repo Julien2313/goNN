@@ -3,6 +3,8 @@
 import (
 	"fmt"
 
+
+
 	"github.com/goNN/models"
 )
 
@@ -44,25 +46,43 @@ func main() {
 
 import (
 	"github.com/goNN/models"
+	"math/rand"
 )
 
 func main() {
 
-	//trainSet := [][][]float64{{{1}, {2}}, {{4}, {8}}, {{5}, {10}}}
+	var trainSet [][][]float64
+
+	trainSet = make([][][]float64, 500)
+
+	for train := 0; train < len(trainSet); train++ {
+		trainSet[train] = make([][]float64, 2)
+		trainSet[train][0] = make([]float64, 3)
+		trainSet[train][1] = make([]float64, 1)
+		x := rand.Float64()*40.0 - 20.0
+		y := rand.Float64()*40.0 - 20.0
+		z := rand.Float64()*40.0 - 20.0
+		a := x + y + z
+		trainSet[train][0][0] = x
+		trainSet[train][0][1] = y
+		trainSet[train][0][2] = z
+		trainSet[train][1][0] = a
+
+	}
+
 	var nn models.NeuralNetwork
 
-	nn.Init(2, 8, 1, 72)
+	nn.Init(3, 1, 1, 32)
 	//nn.SetInput([]float64{2})
 	//nn.Propagate()
 	//fmt.Println(nn.Neurons[1][0].Value)
 	////
-	//for x := 0; x < 500; x++ {
-	//	nn.Train(trainSet)
-	//}
+	for x := 0; x < 500; x++ {
+		nn.Train(trainSet)
+		nn.Draw(x)
+	}
 	//nn.SetInput([]float64{5})
 	//nn.Propagate()
 	//fmt.Println(nn.Neurons[1][0].Value)
-	nn.Draw()
-
 
 }
