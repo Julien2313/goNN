@@ -38,19 +38,12 @@ func (nn *NeuralNetwork) Init(nbrInput, nbrOutput, nbrHiddenLayers, nbrNeuronsPe
 
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
 			nn.Neurons[numLayer][numNeuron].Biais = rand.Float64()*40.0 - 20.0
-			if numLayer == 1 {
-				nn.Neurons[numLayer][numNeuron].Weights = make([]float64, nbrInput)
-				nn.Neurons[numLayer][numNeuron].NewWeights = make([]float64, nbrInput)
-				for numWeightNeuron := 0; numWeightNeuron < nbrInput; numWeightNeuron++ {
-					nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] = rand.Float64()*40.0 - 20.0
-				}
-			} else {
-				nn.Neurons[numLayer][numNeuron].Weights = make([]float64, len(nn.Neurons[numLayer-1]))
-				nn.Neurons[numLayer][numNeuron].NewWeights = make([]float64, len(nn.Neurons[numLayer-1]))
-				for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[numLayer-1]); numWeightNeuron++ {
-					nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] = rand.Float64()*40.0 - 20.0
-				}
+			nn.Neurons[numLayer][numNeuron].Weights = make([]float64, len(nn.Neurons[numLayer-1]))
+			nn.Neurons[numLayer][numNeuron].NewWeights = make([]float64, len(nn.Neurons[numLayer-1]))
+			for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[numLayer-1]); numWeightNeuron++ {
+				nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] = rand.Float64()*40.0 - 20.0
 			}
+
 		}
 	}
 
