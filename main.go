@@ -61,9 +61,6 @@ func main() {
 		if x == 0 {
 			nn.Draw(x)
 		}
-		// if x%10 == 0 {
-		// 	fmt.Println(nn.CheckTraining(trainSet))
-		// }
 	}
 
 	fmt.Println("Error : = ", nn.CheckTraining(trainSet))

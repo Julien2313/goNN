@@ -190,13 +190,14 @@ func (nn *NeuralNetwork) BackProp(output []float64) {
 	for numLayer := 1; numLayer < nn.NbrHiddenLayers+2; numLayer++ {
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
 			for numWeights := 0; numWeights < len(nn.Neurons[numLayer-1]); numWeights++ {
-				if nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] > 20 {
-					nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] = 20
+				weight := &nn.Neurons[numLayer][numNeuron].NewWeights[numWeights]
+				if *weight > 20 {
+					*weight = 20
 				}
-				if nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] < -20 {
-					nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] = -20
+				if *weight < -20 {
+					*weight = -20
 				}
-				nn.Neurons[numLayer][numNeuron].Weights[numWeights] = nn.Neurons[numLayer][numNeuron].NewWeights[numWeights]
+				nn.Neurons[numLayer][numNeuron].Weights[numWeights] = *weight
 			}
 		}
 	}
