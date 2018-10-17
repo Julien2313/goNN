@@ -7,6 +7,5 @@ type Neuron struct {
 	Biais    float64
 	Expected float64
 
-	TotalErrorByWithOutput float64
-	NewWeights             []float64
+	NewWeights []float64
 }

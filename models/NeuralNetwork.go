@@ -23,7 +23,7 @@ func (nn *NeuralNetwork) Init(nbrInput, nbrOutput, nbrHiddenLayers, nbrNeuronsPe
 	nn.NbrHiddenLayers = nbrHiddenLayers
 	nn.NbrNeuronsPerLayer = nbrNeuronsPerLayer
 
-	nn.LearningRate = 0.01
+	nn.LearningRate = 0.05
 
 	//Init Neurons
 	nn.Neurons = make([][]Neuron, 2+nbrHiddenLayers)
@@ -38,7 +38,6 @@ func (nn *NeuralNetwork) Init(nbrInput, nbrOutput, nbrHiddenLayers, nbrNeuronsPe
 
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
 			nn.Neurons[numLayer][numNeuron].Biais = rand.Float64()*40.0 - 20.0
-
 			if numLayer == 1 {
 				nn.Neurons[numLayer][numNeuron].Weights = make([]float64, nbrInput)
 				nn.Neurons[numLayer][numNeuron].NewWeights = make([]float64, nbrInput)
@@ -172,19 +171,13 @@ func (nn *NeuralNetwork) Propagate() {
 
 func (nn *NeuralNetwork) BackProp(output []float64) {
 	for numNeuronOutput := 0; numNeuronOutput < nn.NbrOutput; numNeuronOutput++ {
+		neuron := &nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput]
+		neuron.Error = neuron.Value - output[numNeuronOutput]
 		for numWeight := 0; numWeight < len(nn.Neurons[nn.NbrHiddenLayers]); numWeight++ {
-			nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].TotalErrorByWithOutput = nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Value - output[numNeuronOutput]
-			nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].NewWeights[numWeight] = nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Weights[numWeight] - nn.LearningRate * nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].TotalErrorByWithOutput * nn.Neurons[nn.NbrHiddenLayers][numWeight].Value
-
-			// fmt.Println(nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Weights[numWeight], nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].NewWeights[numWeight])
-			// outputWithTotalNetInput := nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Value * (1 - nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Value)
-
-			// totalOutputWithWeight := nn.Neurons[nn.NbrHiddenLayers][numWeight].Value
-
-			// nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Error = nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].TotalErrorByWithOutput * outputWithTotalNetInput * totalOutputWithWeight
-
-			// nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].NewWeights[numWeight] = nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Weights[numWeight] - nn.LearningRate*nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Error
+			neuron.NewWeights[numWeight] = neuron.Weights[numWeight] - nn.LearningRate*neuron.Error*nn.Neurons[nn.NbrHiddenLayers][numWeight].Value
 		}
+		neuron.Biais -= (nn.LearningRate * neuron.Error)
+
 	}
 
 	// for numLayer := nn.NbrHiddenLayers; numLayer >= 1; numLayer-- {
@@ -224,4 +217,18 @@ func (nn *NeuralNetwork) Train(dataSet [][][]float64) {
 		nn.Propagate()
 		nn.BackProp(data[1])
 	}
+}
+
+func (nn *NeuralNetwork) CheckTraining(dataSet [][][]float64) float64 {
+	var error float64
+	error = 0.0
+	for _, data := range dataSet {
+		nn.SetInput(data[0])
+		nn.Propagate()
+		for cpt, output := range data[1] {
+			error += math.Pow(nn.Neurons[nn.NbrHiddenLayers+1][cpt].Value-output, 2)
+		}
+
+	}
+	return error
 }

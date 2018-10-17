@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/goNN/models"
 )
@@ -14,10 +13,11 @@ func main() {
 	nbrHiddenLayer := 0
 	nbrNeuronPerHiddenLayer := 0
 	nbrOutput := 1
-
-	rand.Seed(time.Now().UTC().UnixNano())
+	seed := int64(2) //time.Now().UTC().UnixNano()
+	fmt.Println(seed)
+	rand.Seed(seed)
 	var trainSet [][][]float64
-	trainSet = make([][][]float64, 1000)
+	trainSet = make([][][]float64, 10000)
 
 	for train := 0; train < len(trainSet); train++ {
 		/*
@@ -38,7 +38,7 @@ func main() {
 		trainSet[train][1] = make([]float64, nbrOutput)
 		x := rand.Float64()*40.0 - 20.0
 		var a float64
-		if x > 0 {
+		if x > -3 {
 			a = 1.0
 		} else {
 			a = 0.0
@@ -52,18 +52,22 @@ func main() {
 
 	//nn.Init(3, 1, 1, 32)
 	nn.Init(nbrInput, nbrOutput, nbrHiddenLayer, nbrNeuronPerHiddenLayer)
-	nn.SetInput(trainSet[999][0])
+	nn.SetInput(trainSet[9999][0])
 	nn.Propagate()
-	fmt.Println(nn.Neurons[0][0].Value, nn.Neurons[1][0].Value)
+	fmt.Println(nn.Neurons[0][0].Value, nn.Neurons[1][0].Value, nn.Neurons[1][0].Weights[0], nn.Neurons[1][0].Biais)
+	fmt.Println("Error : = ", nn.CheckTraining(trainSet))
 	for x := 0; x < 1000; x++ {
 		nn.Train(trainSet)
 		if x == 0 {
 			nn.Draw(x)
 		}
+		// if x%10 == 0 {
+		// 	fmt.Println(nn.CheckTraining(trainSet))
+		// }
 	}
-	fmt.Println(nn.Neurons[0][0].Value, nn.Neurons[1][0].Value)
-	//nn.SetInput([]float64{5})
-	//nn.Propagate()
-	//fmt.Println(nn.Neurons[1][0].Value)
+
+	fmt.Println("Error : = ", nn.CheckTraining(trainSet))
+	fmt.Println(nn.Neurons[0][0].Value, nn.Neurons[1][0].Value, nn.Neurons[1][0].Weights[0], nn.Neurons[1][0].Biais)
+	fmt.Println(nn.Neurons[1][0].Weights[0], nn.Neurons[1][0].Biais)
 
 }
