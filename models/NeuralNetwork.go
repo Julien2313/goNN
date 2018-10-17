@@ -161,7 +161,6 @@ func (nn *NeuralNetwork) Propagate() {
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
 			sum := nn.Neurons[numLayer][numNeuron].Biais
 			for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[numLayer-1]); numWeightNeuron++ {
-				//fmt.Println("  ", nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron]*nn.Neurons[numLayer-1][numWeightNeuron].Value)
 				sum += nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] * nn.Neurons[numLayer-1][numWeightNeuron].Value
 			}
 			nn.Neurons[numLayer][numNeuron].Value = helper.Sigmoid(sum)
@@ -174,10 +173,9 @@ func (nn *NeuralNetwork) BackProp(output []float64) {
 		neuron := &nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput]
 		neuron.Error = neuron.Value - output[numNeuronOutput]
 		for numWeight := 0; numWeight < len(nn.Neurons[nn.NbrHiddenLayers]); numWeight++ {
-			neuron.NewWeights[numWeight] = neuron.Weights[numWeight] - nn.LearningRate*neuron.Error*nn.Neurons[nn.NbrHiddenLayers][numWeight].Value
+			neuron.NewWeights[numWeight] = neuron.Weights[numWeight] - nn.LearningRate*neuron.Error*nn.Neurons[nn.NbrHiddenLayers][numWeight].Value*helper.SigmoidDerivate(nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Value)
 		}
 		neuron.Biais -= (nn.LearningRate * neuron.Error)
-
 	}
 
 	// for numLayer := nn.NbrHiddenLayers; numLayer >= 1; numLayer-- {
@@ -185,7 +183,7 @@ func (nn *NeuralNetwork) BackProp(output []float64) {
 	// 		for numWeight := 0; numWeight < len(nn.Neurons[numLayer-1]); numWeight++ {
 	// 			eTot := 0.0
 	// 			for numWeightAfter := 0; numWeightAfter < len(nn.Neurons[numLayer+1]); numWeightAfter++ {
-	// 				coef := nn.Neurons[numLayer+1][numWeightAfter].TotalErrorByWithOutput * nn.Neurons[numLayer+1][numWeightAfter].Value * (1 - nn.Neurons[numLayer+1][numWeightAfter].Value)
+	// 				coef := nn.Neurons[numLayer+1][numWeightAfter].Error * nn.Neurons[numLayer+1][numWeightAfter].Value * (1 - nn.Neurons[numLayer+1][numWeightAfter].Value)
 	// 				weight := nn.Neurons[numLayer+1][numWeightAfter].Weights[numNeuron]
 	// 				eTot += coef * weight
 	// 			}

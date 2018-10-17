@@ -38,7 +38,7 @@ func main() {
 		trainSet[train][1] = make([]float64, nbrOutput)
 		x := rand.Float64()*40.0 - 20.0
 		var a float64
-		if x > -3 {
+		if x > -13 {
 			a = 1.0
 		} else {
 			a = 0.0
@@ -56,7 +56,7 @@ func main() {
 	nn.Propagate()
 	fmt.Println(nn.Neurons[0][0].Value, nn.Neurons[1][0].Value, nn.Neurons[1][0].Weights[0], nn.Neurons[1][0].Biais)
 	fmt.Println("Error : = ", nn.CheckTraining(trainSet))
-	for x := 0; x < 1000; x++ {
+	for x := 0; x < 10000; x++ {
 		nn.Train(trainSet)
 		if x == 0 {
 			nn.Draw(x)
