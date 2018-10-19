@@ -10,8 +10,8 @@ import (
 func main() {
 
 	nbrInput := 1
-	nbrHiddenLayer := 0
-	nbrNeuronPerHiddenLayer := 0
+	nbrHiddenLayer := 1
+	nbrNeuronPerHiddenLayer := 32
 	nbrOutput := 1
 	seed := int64(2) //time.Now().UTC().UnixNano()
 	fmt.Println(seed)
@@ -45,7 +45,6 @@ func main() {
 		}
 		trainSet[train][0][0] = x
 		trainSet[train][1][0] = a
-
 	}
 
 	var nn models.NeuralNetwork
@@ -56,9 +55,12 @@ func main() {
 	nn.Propagate()
 	fmt.Println(nn.Neurons[0][0].Value, nn.Neurons[1][0].Value, nn.Neurons[1][0].Weights[0], nn.Neurons[1][0].Biais)
 	fmt.Println("Error : = ", nn.CheckTraining(trainSet))
-	for x := 0; x < 10000; x++ {
+	for x := 0; x < 1000; x++ {
 		nn.Train(trainSet)
 		if x == 0 {
+			nn.Draw(x)
+		}
+		if x == 999 {
 			nn.Draw(x)
 		}
 		// if x%10 == 0 {

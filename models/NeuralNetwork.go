@@ -30,39 +30,32 @@ func (nn *NeuralNetwork) Init(nbrInput, nbrOutput, nbrHiddenLayers, nbrNeuronsPe
 	nn.Neurons[0] = make([]Neuron, nbrInput)
 
 	for numNeuron := 0; numNeuron < nbrInput; numNeuron++ {
-		nn.Neurons[0][numNeuron].Biais = rand.Float64()*40.0 - 20.0
+		nn.Neurons[0][numNeuron].Biais = rand.Float64()*MaxBiais*2 - MaxBiais
 	}
 
 	for numLayer := 1; numLayer < nbrHiddenLayers+1; numLayer++ {
 		nn.Neurons[numLayer] = make([]Neuron, nbrNeuronsPerLayer)
 
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
-			nn.Neurons[numLayer][numNeuron].Biais = rand.Float64()*40.0 - 20.0
-			if numLayer == 1 {
-				nn.Neurons[numLayer][numNeuron].Weights = make([]float64, nbrInput)
-				nn.Neurons[numLayer][numNeuron].NewWeights = make([]float64, nbrInput)
-				for numWeightNeuron := 0; numWeightNeuron < nbrInput; numWeightNeuron++ {
-					nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] = rand.Float64()*40.0 - 20.0
-				}
-			} else {
-				nn.Neurons[numLayer][numNeuron].Weights = make([]float64, len(nn.Neurons[numLayer-1]))
-				nn.Neurons[numLayer][numNeuron].NewWeights = make([]float64, len(nn.Neurons[numLayer-1]))
-				for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[numLayer-1]); numWeightNeuron++ {
-					nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] = rand.Float64()*40.0 - 20.0
-				}
+			nn.Neurons[numLayer][numNeuron].Biais = rand.Float64()*MaxBiais*2 - MaxBiais
+			nn.Neurons[numLayer][numNeuron].Weights = make([]float64, len(nn.Neurons[numLayer-1]))
+			nn.Neurons[numLayer][numNeuron].NewWeights = make([]float64, len(nn.Neurons[numLayer-1]))
+			for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[numLayer-1]); numWeightNeuron++ {
+				nn.Neurons[numLayer][numNeuron].Weights[numWeightNeuron] = rand.Float64()*MaxWeight*2 - MaxWeight
 			}
+
 		}
 	}
 
 	nn.Neurons[nbrHiddenLayers+1] = make([]Neuron, nbrOutput)
 
 	for numNeuron := 0; numNeuron < nbrOutput; numNeuron++ {
-		nn.Neurons[nbrHiddenLayers+1][numNeuron].Biais = rand.Float64()*40.0 - 20.0
+		nn.Neurons[nbrHiddenLayers+1][numNeuron].Biais = rand.Float64()*MaxBiais*2 - MaxBiais
 
 		nn.Neurons[nbrHiddenLayers+1][numNeuron].Weights = make([]float64, len(nn.Neurons[nbrHiddenLayers]))
 		nn.Neurons[nbrHiddenLayers+1][numNeuron].NewWeights = make([]float64, len(nn.Neurons[nbrHiddenLayers]))
 		for numWeightNeuron := 0; numWeightNeuron < len(nn.Neurons[nbrHiddenLayers]); numWeightNeuron++ {
-			nn.Neurons[nbrHiddenLayers+1][numNeuron].Weights[numWeightNeuron] = rand.Float64()*40.0 - 20.0
+			nn.Neurons[nbrHiddenLayers+1][numNeuron].Weights[numWeightNeuron] = rand.Float64()*MaxWeight*2 - MaxWeight
 		}
 
 	}
@@ -171,39 +164,44 @@ func (nn *NeuralNetwork) Propagate() {
 func (nn *NeuralNetwork) BackProp(output []float64) {
 	for numNeuronOutput := 0; numNeuronOutput < nn.NbrOutput; numNeuronOutput++ {
 		neuron := &nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput]
-		neuron.Error = neuron.Value - output[numNeuronOutput]
-		for numWeight := 0; numWeight < len(nn.Neurons[nn.NbrHiddenLayers]); numWeight++ {
-			neuron.NewWeights[numWeight] = neuron.Weights[numWeight] - nn.LearningRate*neuron.Error*nn.Neurons[nn.NbrHiddenLayers][numWeight].Value*helper.SigmoidDerivate(nn.Neurons[nn.NbrHiddenLayers+1][numNeuronOutput].Value)
-		}
+		neuron.Error = (neuron.Value - output[numNeuronOutput])
 		neuron.Biais -= (nn.LearningRate * neuron.Error)
+		for numWeight := 0; numWeight < len(nn.Neurons[nn.NbrHiddenLayers]); numWeight++ {
+			neuron.NewWeights[numWeight] = neuron.Weights[numWeight] - nn.LearningRate*neuron.Error*nn.Neurons[nn.NbrHiddenLayers][numWeight].Value*helper.SigmoidDerivate(neuron.Value)
+		}
 	}
 
-	// for numLayer := nn.NbrHiddenLayers; numLayer >= 1; numLayer-- {
-	// 	for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
-	// 		for numWeight := 0; numWeight < len(nn.Neurons[numLayer-1]); numWeight++ {
-	// 			eTot := 0.0
-	// 			for numWeightAfter := 0; numWeightAfter < len(nn.Neurons[numLayer+1]); numWeightAfter++ {
-	// 				coef := nn.Neurons[numLayer+1][numWeightAfter].Error * nn.Neurons[numLayer+1][numWeightAfter].Value * (1 - nn.Neurons[numLayer+1][numWeightAfter].Value)
-	// 				weight := nn.Neurons[numLayer+1][numWeightAfter].Weights[numNeuron]
-	// 				eTot += coef * weight
-	// 			}
-	// 			valueOutputDerivate := helper.SigmoidDerivate(nn.Neurons[numLayer][numNeuron].Value)
-	// 			inputLeft := nn.Neurons[numLayer-1][numWeight].Value
-	// 			nn.Neurons[numLayer][numNeuron].NewWeights[numWeight] = nn.Neurons[numLayer][numNeuron].Weights[numWeight] - nn.LearningRate*eTot*valueOutputDerivate*inputLeft
-	// 		}
-	// 	}
-	// }
+	for numLayer := nn.NbrHiddenLayers; numLayer >= 1; numLayer-- {
+		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
+			errorAfter := 0.0
+			for numWeightAfter := 0; numWeightAfter < len(nn.Neurons[numLayer+1]); numWeightAfter++ {
+				errorAfter += nn.Neurons[numLayer+1][numWeightAfter].Error * helper.SigmoidDerivate(nn.Neurons[numLayer+1][numWeightAfter].Value)
+			}
+
+			nn.Neurons[numLayer][numNeuron].Error = errorAfter * helper.Sigmoid(nn.Neurons[numLayer][numNeuron].Value)
+
+			for numWeight := 0; numWeight < len(nn.Neurons[numLayer-1]); numWeight++ {
+				nn.Neurons[numLayer][numNeuron].NewWeights[numWeight] = nn.Neurons[numLayer][numNeuron].Weights[numWeight] - nn.LearningRate*nn.Neurons[numLayer][numNeuron].Error*nn.Neurons[numLayer-1][numWeight].Value
+			}
+		}
+	}
 
 	for numLayer := 1; numLayer < nn.NbrHiddenLayers+2; numLayer++ {
 		for numNeuron := 0; numNeuron < len(nn.Neurons[numLayer]); numNeuron++ {
 			for numWeights := 0; numWeights < len(nn.Neurons[numLayer-1]); numWeights++ {
-				if nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] > 20 {
-					nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] = 20
+				if nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] > MaxWeight {
+					nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] = MaxWeight
 				}
-				if nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] < -20 {
-					nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] = -20
+				if nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] < -MaxWeight {
+					nn.Neurons[numLayer][numNeuron].NewWeights[numWeights] = -MaxWeight
 				}
 				nn.Neurons[numLayer][numNeuron].Weights[numWeights] = nn.Neurons[numLayer][numNeuron].NewWeights[numWeights]
+			}
+			if nn.Neurons[numLayer][numNeuron].Biais > MaxBiais {
+				nn.Neurons[numLayer][numNeuron].Biais = MaxBiais
+			}
+			if nn.Neurons[numLayer][numNeuron].Biais < -MaxBiais {
+				nn.Neurons[numLayer][numNeuron].Biais = -MaxBiais
 			}
 		}
 	}

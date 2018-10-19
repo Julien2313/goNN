@@ -9,3 +9,6 @@ type Neuron struct {
 
 	NewWeights []float64
 }
+
+const MaxWeight float64 = 20
+const MaxBiais float64 = 250
