@@ -30,7 +30,7 @@ func (nn *NeuralNetwork) Init(nbrInput, nbrOutput, nbrHiddenLayers, nbrNeuronsPe
 	nn.Neurons[0] = make([]Neuron, nbrInput)
 
 	for numNeuron := 0; numNeuron < nbrInput; numNeuron++ {
-		nn.Neurons[0][numNeuron].Biais = rand.Float64()*MaxBiais*2 - MaxBiais
+		nn.Neurons[0][numNeuron].Biais = 0.0
 	}
 
 	for numLayer := 1; numLayer < nbrHiddenLayers+1; numLayer++ {
@@ -131,6 +131,23 @@ func (nn *NeuralNetwork) Draw(epoch int) {
 			dc.SetRGBA(1, 1, 1, 1)
 			dc.DrawCircle(float64(x), float64(y), size*float64(H)/float64(len(nn.Neurons[numLayer])+3)*0.9)
 			dc.Fill()
+
+			var r float64
+			var b float64
+			if nn.Neurons[numLayer][numNeuron].Biais > 0.0 {
+				r = 1.0 // nn.Neurons[numLayer][numNeuron].Weights[numWeight]
+				b = 0.0
+			} else {
+				r = 0.0 // nn.Neurons[numLayer][numNeuron].Weights[numWeight]
+				b = 1.0
+			}
+
+			ratio := nn.Neurons[numLayer][numNeuron].Biais / MaxBiais / 2.0
+
+			g := 0.0
+			dc.SetRGBA(r, g, b, 1.0)
+			dc.DrawCircle(float64(x), float64(y), size*float64(H)/float64(len(nn.Neurons[numLayer])+3)*ratio)
+			dc.Fill()
 		}
 	}
 
@@ -183,6 +200,7 @@ func (nn *NeuralNetwork) BackProp(output []float64) {
 			for numWeight := 0; numWeight < len(nn.Neurons[numLayer-1]); numWeight++ {
 				nn.Neurons[numLayer][numNeuron].NewWeights[numWeight] = nn.Neurons[numLayer][numNeuron].Weights[numWeight] - nn.LearningRate*nn.Neurons[numLayer][numNeuron].Error*nn.Neurons[numLayer-1][numWeight].Value
 			}
+			nn.Neurons[numLayer][numNeuron].Biais -= (nn.LearningRate * nn.Neurons[numLayer][numNeuron].Error)
 		}
 	}
 
